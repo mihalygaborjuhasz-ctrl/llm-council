@@ -8,6 +8,7 @@ from typing import List, Dict, Any
 import uuid
 import json
 import asyncio
+import os
 
 from . import storage
 from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings
@@ -15,14 +16,23 @@ from .council import run_full_council, generate_conversation_title, stage1_colle
 app = FastAPI(title="LLM Council API")
 
 # Enable CORS for local development
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+# Allow Lovable frontend in production
+allow_origins_env = os.getenv("ALLOW_ORIGINS", "")
+if allow_origins_env:
+    origins.extend([o.strip() for o in allow_origins_env.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 class CreateConversationRequest(BaseModel):
     """Request to create a new conversation."""
